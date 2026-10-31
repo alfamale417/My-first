@@ -1,0 +1,35 @@
+import argparse
+import os
+import sys
+from pathlib import Path
+
+from config import SETTINGS
+from generate_video import generate_script
+from generate_video import render_video
+from upload_youtube import upload_video
+
+
+def run_pipeline(topic: str, title: str, description: str):
+    script = generate_script(topic, title)
+    os.makedirs(SETTINGS.video_output_dir, exist_ok=True)
+    output_file = os.path.join(SETTINGS.video_output_dir, 'youtube_video.mp4')
+
+    print('Generating script...')
+    print(script[:300])
+
+    print('Rendering video...')
+    render_video(script, output_file)
+
+    print('Uploading to YouTube...')
+    upload_video(output_file, title, description, SETTINGS.upload_privacy)
+    print('Pipeline complete.')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate and upload an AI video to YouTube.')
+    parser.add_argument('--topic', default=SETTINGS.topic, help='Video topic')
+    parser.add_argument('--title', default=SETTINGS.video_title, help='YouTube title')
+    parser.add_argument('--description', default=SETTINGS.video_description, help='YouTube description')
+    args = parser.parse_args()
+
+    run_pipeline(args.topic, args.title, args.description)
